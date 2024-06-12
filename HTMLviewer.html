@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML File Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .iframe-container {
+            width: 400px;
+            height: 400px;
+            border: 1px solid #ccc;
+            overflow: hidden;
+            margin: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .title-container {
+            font-size: 18px;
+            margin-top: 10px;
+        }
+        .file-input, .navigation {
+            display: flex;
+            justify-content: space-between;
+            width: 400px;
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        input[type="number"] {
+            padding: 10px;
+            font-size: 16px;
+            width: 100px;
+        }
+        .trait-info {
+            margin-top: 20px;
+            width: 400px;
+        }
+        .trait-info p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="content" class="iframe-container"></div>
+    <div id="title" class="title-container"></div>
+    <div class="file-input">
+        <input type="number" id="fileNumber" min="1" placeholder="Enter file number">
+        <button onclick="loadByFileNumber()">Submit</button>
+    </div>
+    <div class="navigation">
+        <button id="prev" onclick="loadPrevious()">Previous</button>
+        <button id="next" onclick="loadNext()">Next</button>
+    </div>
+    <div id="traits" class="trait-info"></div>
+
+    <script>
+        let currentPage = 0;
+        const traitsDiv = document.getElementById('traits');
+        const traitIndex = {
+            "Backgrounds": {
+                "01": "Darkblue",
+                "02": "Darkred",
+                "03": "Darkturquoise",
+                "04": "Lightblue",
+                "05": "Oceanblue",
+                "06": "Orange",
+                "07": "Red"
+            },
+            "Body": {
+                "01": "Black",
+                "02": "Gold",
+                "03": "Green",
+                "04": "Grey",
+                "05": "Lightpink",
+                "06": "Orange",
+                "07": "Paint",
+                "08": "Pink",
+                "09": "Purple",
+                "10": "Skull",
+                "11": "Universe",
+                "12": "White",
+                "13": "Yellow"
+            },
+            "Clothes": {
+                "01": "90s",
+                "02": "Agent",
+                "03": "Blue D Shirt",
+                "04": "Blue Gym Shirt",
+                "05": "Bow Tie",
+                "06": "Build Shirt",
+                "07": "Commander",
+                "08": "Egyptian Cloak",
+                "09": "Freddy",
+                "10": "Green Gym Tshirt",
+                "11": "Jungle",
+                "12": "Lab Coat",
+                "13": "Medic",
+                "14": "Naked",
+                "15": "Peace",
+                "16": "Pyjamas",
+                "17": "Rain Coat",
+                "18": "Robot Armor",
+                "19": "Shoulder Pad Vest",
+                "20": "Space Commander",
+                "21": "Space General",
+                "22": "Straw Suit",
+                "23": "Tattoos",
+                "24": "Trex Onesie",
+                "25": "Trucker",
+                "26": "Warrior"
+            },
+            "Head": {
+                "01": "Ant",
+                "02": "Antenna",
+                "03": "Bald",
+                "04": "Bandaged Spikes",
+                "05": "Bowl",
+                "06": "Brain",
+                "07": "Bull Horns",
+                "08": "Cloud",
+                "09": "Condom",
+                "10": "Elvis",
+                "11": "Herbalist",
+                "12": "Hook",
+                "13": "Hooligan",
+                "14": "Horn",
+                "15": "Ice Cream",
+                "16": "Lightsaber",
+                "17": "Nightcap",
+                "18": "Politician",
+                "19": "Propeller Hat",
+                "20": "Punk",
+                "21": "Red Loops",
+                "22": "Red Spikes",
+                "23": "Rick",
+                "24": "Rooster",
+                "25": "Shark Fin",
+                "26": "Siren",
+                "27": "Small Spikes",
+                "28": "Stars and Peace",
+                "29": "Stitches",
+                "30": "Samurai",
+                "31": "Top Hat",
+                "32": "Trump",
+                "33": "Tubes",
+                "34": "Wizard",
+                "35": "Worms"
+            },
+            "Eyes": {
+                "01": "Beam",
+                "02": "Bulls",
+                "03": "Fire",
+                "04": "Fly",
+                "05": "Fronking",
+                "06": "Goggle",
+                "07": "Hole",
+                "08": "Laser",
+                "09": "Love",
+                "10": "Mechanic",
+                "11": "Medic",
+                "12": "Open",
+                "13": "Popping",
+                "14": "Red",
+                "15": "Snake",
+                "16": "Spiral",
+                "17": "Stoned",
+                "18": "White",
+                "19": "Worried",
+                "20": "X"
+            },
+            "Mouth": {
+                "01": "Blue Tongue",
+                "02": "Cat",
+                "03": "Circle Teeth",
+                "04": "Confused",
+                "05": "Dogecoin",
+                "06": "Drooling",
+                "07": "Frankenstein",
+                "08": "Gold Teeth",
+                "09": "Iron Jaw",
+                "10": "Joint",
+                "11": "Monster",
+                "12": "Offended",
+                "13": "Open",
+                "14": "Pepe",
+                "15": "Politician",
+                "16": "Sharp Teeth",
+                "17": "Singing",
+                "18": "Smile",
+                "19": "Sneaky",
+                "20": "Straight",
+                "21": "Tilted",
+                "22": "Yawn",
+                "23": "Yell",
+                "24": "Zigzag"
+            }
+        };
+
+        function extractTraitsFromIndex(traitIndexStr) {
+            const traitTypes = ["Backgrounds", "Body", "Clothes", "Head", "Eyes", "Mouth"];
+            const traits = [];
+            for (let i = 0; i < traitTypes.length; i++) {
+                const traitType = traitTypes[i];
+                const traitCode = traitIndexStr.slice(i * 2, (i + 1) * 2);
+                const traitName = traitIndex[traitType][traitCode];
+                traits.push({ traitType, traitName });
+            }
+            return traits;
+        }
+
+        function displayTraits(traits) {
+            traitsDiv.innerHTML = '';
+            traits.forEach(trait => {
+                const traitInfo = document.createElement('p');
+                traitInfo.textContent = `Trait Type: ${trait.traitType}, Trait: ${trait.traitName}`;
+                traitsDiv.appendChild(traitInfo);
+            });
+        }
+
+        function loadFile(page) {
+            const contentDiv = document.getElementById('content');
+            const titleDiv = document.getElementById('title');
+            traitsDiv.innerHTML = '';
+            contentDiv.innerHTML = '';
+            titleDiv.textContent = '';
+
+            const fileIndex = page + 1;
+            const fileName = `html${String(fileIndex).padStart(5, '0')}.html`;
+
+            fetch(fileName)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Error loading ${fileName}: ${response.statusText}`);
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    // Create an iframe to display the HTML content
+                    const iframe = document.createElement('iframe');
+                    iframe.srcdoc = data;
+                    iframe.width = "400";
+                    iframe.height = "400";
+                    iframe.style.border = "none";
+                    contentDiv.appendChild(iframe);
+
+                    // Extract the title from the HTML content
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = data;
+                    const title = tempDiv.querySelector('title').textContent;
+                    titleDiv.textContent = title;
+
+                    // Extract and display traits
+                    const traitIndexStr = tempDiv.querySelector('#traitindex').textContent;
+                    const traits = extractTraitsFromIndex(traitIndexStr);
+                    displayTraits(traits);
+                })
+                .catch(error => {
+                    console.error(error);
+                    const errorContainer = document.createElement('div');
+                    errorContainer.className = 'iframe-container';
+                    errorContainer.textContent = `Failed to load ${fileName}`;
+                    contentDiv.appendChild(errorContainer);
+                });
+        }
+
+        function loadPrevious() {
+            if (currentPage > 0) {
+                currentPage--;
+                loadFile(currentPage);
+            }
+        }
+
+        function loadNext() {
+            currentPage++;
+            loadFile(currentPage);
+        }
+
+        function loadByFileNumber() {
+            const fileNumberInput = document.getElementById('fileNumber');
+            const fileNumber = parseInt(fileNumberInput.value, 10);
+            if (!isNaN(fileNumber) && fileNumber > 0) {
+                currentPage = fileNumber - 1;
+                loadFile(currentPage);
+            } else {
+                alert('Please enter a valid file number.');
+            }
+        }
+
+        window.onload = () => {
+            loadFile(currentPage);
+        };
+    </script>
+</body>
+</html>
